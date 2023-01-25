@@ -394,7 +394,42 @@ func (prop *Prop) SetURI(u *url.URL) {
 	prop.Value = u.String()
 }
 
-// TODO: Period, Time, UTCOffset
+func (prop *Prop) UTCOffset() (string, error) {
+	if err := prop.expectValueType(ValueUTCOffset); err != nil {
+		return "", err
+	}
+	return prop.Value, nil
+}
+
+func (prop *Prop) SetUTCOffset(t time.Time) {
+	prop.SetValueType(ValueUTCOffset)
+	if t.Location() == nil {
+		t = t.In(time.UTC)
+	}
+	_, offset := t.Zone()
+	if offset == 0 {
+		prop.Value = fmt.Sprint(offset)
+		return
+	}
+
+	var val string
+	if offset > 0 {
+		val = "+"
+	} else {
+		val = "-"
+		offset *= -1
+	}
+	hours := offset / (60 * 60)
+	minutes := (offset % (60 * 60)) / 60
+	seconds := (offset % (60 * 60)) % 60
+	val += fmt.Sprintf("%02d%02d", hours, minutes)
+	if seconds > 0 {
+		val += fmt.Sprintf("%02d", seconds)
+	}
+	prop.Value = val
+}
+
+// TODO: Period, Time
 
 // Props is a set of component properties.
 type Props map[string][]Prop
@@ -465,6 +500,19 @@ func (props Props) URI(name string) (*url.URL, error) {
 		return prop.URI()
 	}
 	return nil, nil
+}
+
+func (props Props) SetUTCOffset(name string, t time.Time) {
+	prop := NewProp(name)
+	prop.SetUTCOffset(t)
+	props.Set(prop)
+}
+
+func (props Props) UTCOffset(name string) (string, error) {
+	if prop := props.Get(name); prop != nil {
+		return prop.UTCOffset()
+	}
+	return "", nil
 }
 
 // Returns an ROption based on the events RRULE.
