@@ -429,6 +429,10 @@ func (prop *Prop) SetUTCOffset(t time.Time) {
 	prop.Value = val
 }
 
+func (prop *Prop) SetInt(i int) {
+	prop.Value = fmt.Sprint(i)
+}
+
 // TODO: Period, Time
 
 // Props is a set of component properties.
@@ -513,6 +517,19 @@ func (props Props) UTCOffset(name string) (string, error) {
 		return prop.UTCOffset()
 	}
 	return "", nil
+}
+
+func (props Props) SetInt(name string, i int) {
+	prop := NewProp(name)
+	prop.SetInt(i)
+	props.Set(prop)
+}
+
+func (props Props) Int(name string) (int, error) {
+	if prop := props.Get(name); prop != nil {
+		return prop.Int()
+	}
+	return 0, nil
 }
 
 // Returns an ROption based on the events RRULE.
