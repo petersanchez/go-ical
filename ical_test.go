@@ -322,7 +322,7 @@ func TestSetDateTime(t *testing.T) {
 	for _, tCase := range testCases {
 		t.Run(tCase.Alias, func(t *testing.T) {
 			p := NewProp("FakeProp")
-			p.SetDateTime(tCase.Date)
+			p.SetDateTime(tCase.Date, true)
 			if got, want := p.Params.Get(PropTimezoneID), tCase.ExpectedTZID; got != want {
 				t.Errorf("bad tzid: %s, expected: %s", got, want)
 			}

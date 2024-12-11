@@ -164,13 +164,15 @@ func (prop *Prop) SetDate(t time.Time) {
 	prop.Value = t.Format(dateFormat)
 }
 
-func (prop *Prop) SetDateTime(t time.Time) {
+func (prop *Prop) SetDateTime(t time.Time, setTzid bool) {
 	prop.SetValueType(ValueDateTime)
 	switch t.Location() {
 	case nil, time.UTC:
 		prop.Value = t.Format(datetimeUTCFormat)
 	default:
-		prop.Params.Set(PropTimezoneID, t.Location().String())
+		if setTzid {
+			prop.Params.Set(PropTimezoneID, t.Location().String())
+		}
 		prop.Value = t.Format(datetimeFormat)
 	}
 }
@@ -489,7 +491,16 @@ func (props Props) SetDate(name string, t time.Time) {
 
 func (props Props) SetDateTime(name string, t time.Time) {
 	prop := NewProp(name)
-	prop.SetDateTime(t)
+	prop.SetDateTime(t, true)
+	props.Set(prop)
+}
+
+// SetDateTimeNoTzid is just a helper to set a DateTime object WITHOUT
+// setting the TZID parameter when a non UTC timezone is specified. This
+// is for edge cases where the spec requires the TZID be omitted.
+func (props Props) SetDateTimeNoTzid(name string, t time.Time) {
+	prop := NewProp(name)
+	prop.SetDateTime(t, false)
 	props.Set(prop)
 }
 
